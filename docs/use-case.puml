@@ -1,0 +1,154 @@
+@startuml AMIHAN_Use_Cases
+' Render with the VS Code "PlantUML" extension (Alt+D) or paste into https://www.plantuml.com/plantuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam defaultFontName "Helvetica"
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #F4F2EE
+  BorderColor #1E2D24
+  ArrowColor #1E2D24
+}
+skinparam rectangle {
+  BorderColor #1E2D24
+  BackgroundColor #EAE7E1
+}
+
+actor "Customer\n(registered user)" as Customer
+actor "Admin" as Admin
+actor "Staff" as Staff
+actor "Fulfillment" as Fulfillment
+actor "Courier\n(delivery personnel)" as Courier
+actor "Payment Gateway\n<<system>>" as Gateway
+actor "Email Service\n<<system>>" as Email
+
+Staff -|> Admin : <<limited>>
+Fulfillment -|> Admin : <<orders only>>
+
+rectangle "AMIHAN Highland Pantry" {
+
+  package "Browsing" {
+    usecase "Browse catalog" as UC_Browse
+    usecase "Search products" as UC_Search
+    usecase "Filter and sort" as UC_Filter
+    usecase "View product details" as UC_Details
+  }
+
+  package "Account" {
+    usecase "Register" as UC_Register
+    usecase "Log in" as UC_Login
+    usecase "Verify password hash" as UC_Hash
+    usecase "Manage profile and addresses" as UC_Profile
+    usecase "View order history" as UC_History
+  }
+
+  package "Buying" {
+    usecase "Add to cart" as UC_Add
+    usecase "Update cart" as UC_Update
+    usecase "Apply coupon" as UC_Coupon
+    usecase "Checkout" as UC_Checkout
+    usecase "Validate stock" as UC_ValStock
+    usecase "Validate address" as UC_ValAddr
+    usecase "Make payment" as UC_Pay
+  }
+
+  package "Order processing" {
+    usecase "Receive new order" as UC_Receive
+    usecase "Confirm order" as UC_Confirm
+    usecase "Update inventory" as UC_Inventory
+    usecase "Pack order" as UC_Pack
+    usecase "Update status" as UC_Status
+    usecase "Send email notification" as UC_SendEmail
+  }
+
+  package "Delivery" {
+    usecase "Assign courier" as UC_Assign
+    usecase "Ship order" as UC_Ship
+    usecase "Track order" as UC_Track
+    usecase "Confirm delivery" as UC_Deliver
+  }
+
+  package "Returns and refunds" {
+    usecase "Request cancellation" as UC_ReqCancel
+    usecase "Request return" as UC_ReqReturn
+    usecase "Approve or reject return" as UC_Decide
+    usecase "Restock item" as UC_Restock
+    usecase "Process refund" as UC_Refund
+  }
+
+  package "Admin management" {
+    usecase "Manage products and categories" as UC_Products
+    usecase "Upload product images" as UC_Upload
+    usecase "Manage stock" as UC_Stock
+    usecase "Manage customers" as UC_Customers
+    usecase "Manage employees and roles" as UC_Employees
+    usecase "View reports and analytics" as UC_Reports
+    usecase "Admin log in" as UC_AdminLogin
+  }
+}
+
+' --- Customer ---
+Customer --> UC_Browse
+Customer --> UC_Search
+Customer --> UC_Filter
+Customer --> UC_Details
+Customer --> UC_Register
+Customer --> UC_Login
+Customer --> UC_Profile
+Customer --> UC_History
+Customer --> UC_Add
+Customer --> UC_Update
+Customer --> UC_Checkout
+Customer --> UC_Track
+Customer --> UC_ReqCancel
+Customer --> UC_ReqReturn
+
+' --- Admin (Staff and Fulfillment inherit a subset) ---
+Admin --> UC_AdminLogin
+Admin --> UC_Receive
+Admin --> UC_Confirm
+Admin --> UC_Pack
+Admin --> UC_Assign
+Admin --> UC_Decide
+Admin --> UC_Products
+Admin --> UC_Stock
+Admin --> UC_Customers
+Admin --> UC_Employees
+Admin --> UC_Reports
+
+' --- Courier ---
+Courier --> UC_Ship
+Courier --> UC_Deliver
+
+' --- External systems ---
+UC_Pay --> Gateway
+UC_Refund --> Gateway
+UC_SendEmail --> Email
+
+' --- include: always happens as part of the base use case ---
+UC_Login .> UC_Hash : <<include>>
+UC_AdminLogin .> UC_Hash : <<include>>
+UC_Checkout .> UC_ValStock : <<include>>
+UC_Checkout .> UC_ValAddr : <<include>>
+UC_Checkout .> UC_Pay : <<include>>
+UC_Checkout .> UC_Inventory : <<include>>
+UC_Receive .> UC_SendEmail : <<include>>
+UC_Confirm .> UC_Status : <<include>>
+UC_Pack .> UC_Status : <<include>>
+UC_Ship .> UC_Status : <<include>>
+UC_Deliver .> UC_Status : <<include>>
+UC_Status .> UC_SendEmail : <<include>>
+UC_Products .> UC_Upload : <<include>>
+
+' --- extend: optional, only under a condition ---
+UC_Coupon .> UC_Checkout : <<extend>>\n[customer has a code]
+UC_Filter .> UC_Browse : <<extend>>
+UC_Search .> UC_Browse : <<extend>>
+UC_ReqReturn .> UC_History : <<extend>>\n[delivered < 7 days]
+UC_ReqCancel .> UC_History : <<extend>>\n[pending or confirmed]
+UC_Restock .> UC_Decide : <<extend>>\n[approved]
+UC_Refund .> UC_Decide : <<extend>>\n[approved and paid]
+UC_Track .> UC_History : <<extend>>
+
+@enduml
