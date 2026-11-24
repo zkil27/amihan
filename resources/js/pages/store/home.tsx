@@ -133,18 +133,19 @@ function Ascent({ origins }: { origins: Origin[] }) {
     useGSAP(
         () => {
             const reduce = prefersReducedMotion();
-            // Contour lines draw themselves across the whole climb.
-            gsap.utils.toArray<SVGPathElement>('[data-contour] path').forEach((path, i) => {
-                const len = path.getTotalLength();
-                gsap.set(path, { strokeDasharray: len, strokeDashoffset: reduce ? 0 : len });
-                if (!reduce) {
-                    gsap.to(path, {
-                        strokeDashoffset: 0,
-                        ease: 'none',
-                        scrollTrigger: { trigger: ref.current, start: `top ${70 - i * 6}%`, end: 'bottom 80%', scrub: 0.6 },
-                    });
-                }
-            });
+            const origins = gsap.utils.toArray<HTMLElement>('[data-origin]');
+
+            // The contour climbs in clean stages: one quarter more for each origin
+            // reached, so it is never left as a half-drawn fragment.
+            const paths = gsap.utils.toArray<SVGPathElement>('[data-contour] path');
+            const lengths = paths.map((p) => p.getTotalLength() || 1);
+            paths.forEach((p, i) => gsap.set(p, { strokeDasharray: lengths[i], strokeDashoffset: reduce ? 0 : lengths[i] }));
+            const drawTo = (stage: number) => {
+                if (reduce) return;
+                paths.forEach((p, i) =>
+                    gsap.to(p, { strokeDashoffset: lengths[i] * (1 - stage / origins.length), duration: 0.9, ease: 'power2.inOut', delay: i * 0.06, overwrite: true }),
+                );
+            };
 
             // Ridge layers drift at different speeds (6-10% of the viewport).
             if (!reduce) {
@@ -154,13 +155,14 @@ function Ascent({ origins }: { origins: Origin[] }) {
             }
 
             // The large altitude figure follows the origin in view.
-            gsap.utils.toArray<HTMLElement>('[data-origin]').forEach((el) => {
+            origins.forEach((el, index) => {
                 ScrollTrigger.create({
                     trigger: el,
                     start: 'top 60%',
                     end: 'bottom 40%',
                     onToggle: (self) => {
                         el.classList.toggle('is-active', self.isActive);
+                        if (self.isActive) drawTo(index + 1);
                         if (self.isActive && big.current) {
                             const to = Number(el.dataset.masl);
                             if (reduce) {
@@ -181,13 +183,14 @@ function Ascent({ origins }: { origins: Origin[] }) {
     );
 
     return (
-        <section ref={ref} className="bg-mist relative overflow-hidden">
-            {/* Ridge silhouettes, three depths */}
+        // overflow-x-clip (not overflow-hidden): hidden turns the section into a
+        // scroll container, which silently breaks the sticky left column.
+        <section ref={ref} className="bg-mist relative overflow-x-clip">
             {/* Ridge contours at three depths, drifting at different speeds */}
-            <div aria-hidden className="pointer-events-none absolute inset-0">
-                <Ridge depth={10} className="text-pine/[0.14] top-[6%]" d="M0 180 C160 120 260 60 420 70 C560 80 640 150 800 130 C940 110 1060 30 1200 40" />
-                <Ridge depth={7} className="text-pine/[0.12] top-[36%]" d="M0 220 C140 170 300 90 460 110 C620 130 700 200 860 170 C1000 140 1100 80 1200 90" />
-                <Ridge depth={4} className="text-pine/[0.10] top-[66%]" d="M0 160 C200 130 320 60 520 80 C700 100 820 180 980 150 C1080 130 1140 110 1200 100" />
+            <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+                <Ridge depth={10} className="text-pine/[0.09] top-[6%]" d="M0 180 C160 120 260 60 420 70 C560 80 640 150 800 130 C940 110 1060 30 1200 40" />
+                <Ridge depth={7} className="text-pine/[0.08] top-[36%]" d="M0 220 C140 170 300 90 460 110 C620 130 700 200 860 170 C1000 140 1100 80 1200 90" />
+                <Ridge depth={4} className="text-pine/[0.07] top-[66%]" d="M0 160 C200 130 320 60 520 80 C700 100 820 180 980 150 C1080 130 1140 110 1200 100" />
             </div>
 
             <div className="wrap relative section">
@@ -324,28 +327,31 @@ function CoastToCrest({ media }: { media: Record<string, string> }) {
     useGSAP(
         () => {
             if (prefersReducedMotion()) return;
-            // The crest rises over the coast like mist lifting, tied to scroll.
-            gsap.fromTo(
-                '[data-crest]',
-                { clipPath: 'inset(100% 0% 0% 0%)' },
-                { clipPath: 'inset(0% 0% 0% 0%)', ease: 'none', scrollTrigger: { trigger: ref.current, start: 'top top', end: 'bottom bottom', scrub: 0.4 } },
-            );
-            gsap.fromTo('[data-coast-label]', { opacity: 1 }, { opacity: 0, ease: 'none', scrollTrigger: { trigger: ref.current, start: '35% top', end: '55% top', scrub: true } });
-            gsap.fromTo('[data-crest-label]', { opacity: 0 }, { opacity: 1, ease: 'none', scrollTrigger: { trigger: ref.current, start: '45% top', end: '65% top', scrub: true } });
+            // While the frame is held in place, the sea dissolves into the summit like
+            // mist lifting: a soft crossfade with a slight settle, tied to scroll.
+            // It holds on each image at the start and end, so it is never caught halfway.
+            const tl = gsap.timeline({
+                defaults: { ease: 'none' },
+                scrollTrigger: { trigger: ref.current, start: 'top top', end: 'bottom bottom', scrub: 0.5 },
+            });
+            tl.fromTo('[data-crest]', { opacity: 0, scale: 1.04 }, { opacity: 1, scale: 1, duration: 0.45 }, 0.15)
+                .fromTo('[data-coast-label]', { opacity: 1 }, { opacity: 0, duration: 0.2 }, 0.22)
+                .fromTo('[data-crest-label]', { opacity: 0 }, { opacity: 1, duration: 0.2 }, 0.42)
+                .to({}, { duration: 0.25 }); // hold on the crest before the page moves on
         },
         { scope: ref },
     );
 
     return (
-        <section ref={ref} className="relative h-[200svh]">
+        <section ref={ref} className="relative h-[180svh]">
             <span data-masl="0" className="absolute top-0" />
-            <span data-masl="1800" className="absolute bottom-[30%]" />
+            <span data-masl="1800" className="absolute top-[55%]" />
             <div className="sticky top-0 flex h-[100svh] items-center overflow-hidden">
                 <div className="wrap grid w-full items-center gap-10 md:grid-cols-12 md:gap-8">
-                    <div className="relative md:col-span-6 md:col-start-2">
-                        <div className="relative" style={{ aspectRatio: '4 / 5', maxHeight: '72svh' }}>
+                    <div className="relative md:col-span-5 md:col-start-2">
+                        <div className="relative mx-auto w-full overflow-hidden" style={{ aspectRatio: '4 / 5', maxHeight: '72svh', maxWidth: 'calc(72svh * 0.8)' }}>
                             <Plate src={media['coast']} alt="A calm grey sea at first light" label="Coast · Cafe-Isla, sea level" ratio="auto" className="absolute inset-0" />
-                            <div data-crest className="absolute inset-0" style={{ clipPath: 'inset(0% 0% 0% 0%)' }}>
+                            <div data-crest className="absolute inset-0 will-change-[opacity,transform]">
                                 <Plate src={media['crest']} alt="A mountain ridge above a sea of clouds" label="Crest · AMIHAN, above the clouds" ratio="auto" className="absolute inset-0" />
                             </div>
                         </div>

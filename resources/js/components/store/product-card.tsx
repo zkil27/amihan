@@ -9,7 +9,7 @@ import { Link } from '@inertiajs/react';
  */
 export function ProductCard({ product, priority = false }: { product: Card; priority?: boolean }) {
     return (
-        <Link href={route('pantry.show', product.slug)} className="group block focus-visible:outline-offset-8" prefetch>
+        <Link href={route('pantry.show', product.slug)} className="group block focus-visible:outline-offset-8" prefetch data-cursor="view">
             <Plate
                 src={product.image}
                 alt={product.name}

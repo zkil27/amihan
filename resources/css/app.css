@@ -418,6 +418,186 @@
     opacity: 1;
 }
 
+/* ------------------------------------------------------------------
+   Storefront cursor (components/store/luxury-cursor.tsx)
+   Pine dot + trailing hairline ring. Mouse/trackpad only.
+   .lux-cursor-follow  = position only (transform, written by JS)
+   .lux-cursor-*-shape = look only (size, scale, colour)
+------------------------------------------------------------------- */
+html.has-lux-cursor,
+html.has-lux-cursor * {
+    cursor: none !important;
+}
+/* Text fields keep the native I-beam so typing feels normal. */
+html.has-lux-cursor input:not([type='checkbox']):not([type='radio']):not([type='range']),
+html.has-lux-cursor textarea,
+html.has-lux-cursor [contenteditable='true'] {
+    cursor: text !important;
+}
+.lux-cursor {
+    display: none;
+}
+html.has-lux-cursor .lux-cursor {
+    display: block;
+}
+.lux-cursor-follow {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0;
+    will-change: transform;
+    transition: opacity var(--dur-quick) var(--ease-mist);
+}
+html.lux-cursor-on .lux-cursor-follow {
+    opacity: 1;
+}
+.lux-cursor-follow[data-state='text'] {
+    opacity: 0 !important; /* step aside for the native I-beam */
+}
+.lux-cursor-dot-shape,
+.lux-cursor-ring-shape {
+    position: absolute;
+    border-radius: 50%;
+}
+.lux-cursor-dot-shape {
+    width: 6px;
+    height: 6px;
+    left: -3px;
+    top: -3px;
+    background: var(--color-pine);
+    transition:
+        scale var(--dur-quick) var(--ease-mist),
+        background-color var(--dur-base) var(--ease-mist);
+}
+.lux-cursor-ring-shape {
+    width: 34px;
+    height: 34px;
+    left: -17px;
+    top: -17px;
+    border: 1px solid rgb(30 45 36 / 0.32);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+        scale var(--dur-base) var(--ease-mist),
+        background-color var(--dur-base) var(--ease-mist),
+        border-color var(--dur-base) var(--ease-mist);
+}
+.lux-cursor-label {
+    font-family: var(--font-sans);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--color-mist);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity var(--dur-quick) var(--ease-mist);
+    /* The disc is scaled 2.1x for "view"; draw the label at 1/2.1 so it reads at ~10px. */
+    scale: 0.48;
+}
+/* Links and buttons: the ring opens a little, the dot fades. */
+.lux-cursor-ring[data-state='hover'] .lux-cursor-ring-shape {
+    scale: 1.35;
+    border-color: rgb(30 45 36 / 0.6);
+}
+.lux-cursor-dot[data-state='hover'] .lux-cursor-dot-shape,
+.lux-cursor-dot[data-state='view'] .lux-cursor-dot-shape {
+    scale: 0;
+}
+/* Product cards: a small Pine disc that reads "View". */
+.lux-cursor-ring[data-state='view'] .lux-cursor-ring-shape {
+    scale: 2.1;
+    background: rgb(30 45 36 / 0.92);
+    border-color: transparent;
+}
+.lux-cursor-ring[data-state='view'] .lux-cursor-label {
+    opacity: 1;
+}
+/* Press: a slight inward breath. */
+.lux-cursor-ring.is-pressed .lux-cursor-ring-shape {
+    scale: 0.85;
+}
+.lux-cursor-ring[data-state='hover'].is-pressed .lux-cursor-ring-shape {
+    scale: 1.15;
+}
+.lux-cursor-ring[data-state='view'].is-pressed .lux-cursor-ring-shape {
+    scale: 1.9;
+}
+/* On Pine and Basalt grounds the cursor turns mist. */
+.lux-cursor-dot[data-tone='light'] .lux-cursor-dot-shape {
+    background: var(--color-mist);
+}
+.lux-cursor-ring[data-tone='light'] .lux-cursor-ring-shape {
+    border-color: rgb(234 231 225 / 0.45);
+}
+.lux-cursor-ring[data-tone='light'][data-state='hover'] .lux-cursor-ring-shape {
+    border-color: rgb(234 231 225 / 0.75);
+}
+.lux-cursor-ring[data-tone='light'][data-state='view'] .lux-cursor-ring-shape {
+    background: rgb(234 231 225 / 0.92);
+}
+.lux-cursor-ring[data-tone='light'] .lux-cursor-label {
+    color: var(--color-pine);
+}
+
+/* ------------------------------------------------------------------
+   Scrollbar: a 2px Pine hairline on a clear track, faint until the
+   pointer is over the page.
+   Chrome and Edge ignore every ::-webkit-scrollbar rule as soon as
+   scrollbar-width or scrollbar-color is set, and their "thin" bar is
+   much heavier than a hairline. So the standard properties are given
+   to Firefox only; Chrome, Edge and Safari draw the webkit hairline.
+------------------------------------------------------------------- */
+@supports (-moz-appearance: none) {
+    html {
+        scrollbar-width: thin;
+        scrollbar-color: rgb(30 45 36 / 0.2) transparent;
+    }
+    html:hover {
+        scrollbar-color: rgb(30 45 36 / 0.38) transparent;
+    }
+    /* On Pine and Basalt panels that scroll on their own, the thumb turns mist. */
+    .bg-pine,
+    .bg-basalt {
+        scrollbar-color: rgb(234 231 225 / 0.3) transparent;
+    }
+}
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background-color: rgb(30 45 36 / 0.16);
+    border-radius: 6px;
+    /* A clear border keeps the visible thumb a 2px hairline inside the 6px gutter. */
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    min-height: 48px;
+}
+html:hover::-webkit-scrollbar-thumb {
+    background-color: rgb(30 45 36 / 0.32);
+}
+::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(30 45 36 / 0.5);
+}
+::-webkit-scrollbar-thumb:active {
+    background-color: var(--color-pine);
+}
+.bg-pine::-webkit-scrollbar-thumb,
+.bg-basalt::-webkit-scrollbar-thumb {
+    background-color: rgb(234 231 225 / 0.3);
+}
+::-webkit-scrollbar-button {
+    display: none;
+}
+
 /* Hide scrollbars on horizontal chip rows. */
 .no-scrollbar::-webkit-scrollbar {
     display: none;

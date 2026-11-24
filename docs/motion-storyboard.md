@@ -52,6 +52,7 @@ A Ridge Mist band rises over the page (520 ms) while the next page loads. It hol
 
 | Moment | Response |
 |---|---|
+| Cursor (storefront, mouse only) | A 6 px Pine dot tracks the pointer exactly, and a 34 px hairline ring trails a moment behind. Over links and buttons the ring opens to 1.35× and the dot fades. Over product cards it becomes a Pine disc reading "View". On Pine and Basalt sections it turns mist. In text fields the native text cursor returns. Pressing makes the ring breathe in slightly. With reduced motion, the ring follows without lag. Touch screens and the admin keep their normal pointer. |
 | Link hover | A 1 px underline draws from the left and retracts to the right. |
 | Active nav item | A brass dot glides between items. |
 | Button | Hover: the fill deepens and the arrow moves 2 px. Press: opacity drops to 0.85. Loading: a single contour line traces. Done: the label crossfades to "Added". |

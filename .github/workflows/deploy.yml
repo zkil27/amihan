@@ -1,0 +1,76 @@
+name: deploy
+
+# Ships main to Foursys Cloud once the "tests" workflow has passed on it.
+# Can also be run by hand from the Actions tab (Run workflow).
+#
+# Needs one repository secret (Settings > Secrets and variables > Actions):
+#   FOURSYS_SSH_KEY  private key that can log in as fs000031 on ssh.foursyscloud.com:65002
+#
+# The steps themselves live in scripts/deploy.sh, so local and CI deploys stay identical.
+
+on:
+  workflow_run:
+    workflows: [tests]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://orange-cobra-186442.foursyscloud.com
+
+    steps:
+      - name: Checkout the tested commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.FOURSYS_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/amihan_foursys
+          chmod 600 ~/.ssh/amihan_foursys
+          # Pinned host key (checked against a known-good copy on 2026-11-25).
+          echo '[ssh.foursyscloud.com]:65002 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFn2vkRL63WaZ4zSULXmkAS9t4IdbZsFHwQNkum/reB3' > ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<'EOF'
+          Host amihan-prod
+              HostName ssh.foursyscloud.com
+              Port 65002
+              User fs000031
+              IdentityFile ~/.ssh/amihan_foursys
+              IdentitiesOnly yes
+              StrictHostKeyChecking yes
+              ServerAliveInterval 30
+          EOF
+          ssh amihan-prod true
+
+      - name: Deploy
+        run: bash scripts/deploy.sh
+
+      - name: Remove SSH key
+        if: always()
+        run: rm -f ~/.ssh/amihan_foursys

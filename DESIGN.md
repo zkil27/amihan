@@ -73,4 +73,4 @@ Quiet luxury; the full catalogue is in `docs/motion-storyboard.md`.
 
 ## Logo
 
-The interim **Ridge Wind** mark (`components/brand/logo.tsx`, `public/favicon.svg`) is paired with a Zodiak wordmark tracked at 0.32em. It will be replaced by the traced Gemini symbol; see `docs/logo-brief.md`.
+The **Ridge Wind** mark (`components/brand/logo.tsx`, `public/favicon.svg`, master file `general assets/amihan-mark.svg`) is paired with a Zodiak wordmark tracked at 0.32em. It is a hand-drawn vector of the chosen Gemini variation: three rounded contour lines form a double peak, and the outer line rolls on as a breeze and curls once. See `docs/logo-brief.md`.

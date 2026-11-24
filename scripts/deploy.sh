@@ -1,35 +1,43 @@
 #!/usr/bin/env bash
 # Deploy AMIHAN to Foursys Cloud (HestiaCP) over SSH.
 # Usage (Git Bash, from the project root):  bash scripts/deploy.sh
-# Needs the "amihan-prod" host in ~/.ssh/config (see docs/deploy-foursys.md).
+#
+# Server layout (Foursys only offers the "default" web template, so the
+# app lives outside the web root):
+#   ~/web/<domain>/private/amihan   the Laravel app (code, .env, storage, vendor)
+#   ~/web/<domain>/public_html      a copy of public/, plus a tiny index.php that
+#                                   loads ../private/amihan/public/index.php,
+#                                   and storage -> ../private/amihan/storage/app/public
+# Uploaded images live in private/amihan/storage/app/public and are never overwritten.
 set -euo pipefail
 
 HOST="amihan-prod"
 DOMAIN="orange-cobra-186442.foursyscloud.com"
-REMOTE="web/${DOMAIN}/public_html"
-PHP="${REMOTE_PHP:-php}"   # e.g. REMOTE_PHP=/usr/bin/php8.2 bash scripts/deploy.sh
+SITE="web/${DOMAIN}"
 
-export PATH="/c/Users/johne/tools/composer:/c/xampp/php:$PATH"
-export MSYS_NO_PATHCONV=1
-
-echo "1/4  Building front-end assets"
+echo "1/3  Building front-end assets"
 npm run build >/dev/null
 
-echo "2/4  Installing production PHP packages"
-composer install --no-dev --optimize-autoloader --no-interaction --quiet
-
-echo "3/4  Uploading"
+echo "2/3  Uploading code"
 tar czf - \
-  --exclude=./node_modules --exclude=./.git --exclude=./tests --exclude=./.env \
-  --exclude=./.impeccable --exclude='./storage/app/public/*' --exclude='./storage/logs/*' \
+  --exclude=./node_modules --exclude=./vendor --exclude=./.git --exclude=./tests --exclude=./.env \
+  --exclude=./.impeccable --exclude='./general assets' \
+  --exclude='./storage/app/public/*' --exclude='./storage/logs/*' \
   --exclude='./storage/framework/sessions/*' --exclude='./storage/framework/cache/data/*' \
-  --exclude=./public/storage --exclude=./database/database.sqlite --exclude=./public/hot \
-  . | ssh "$HOST" "mkdir -p ${REMOTE} && tar xzf - -C ${REMOTE}"
+  --exclude='./storage/framework/views/*' --exclude=./public/storage --exclude=./public/hot \
+  --exclude=./database/database.sqlite \
+  . | ssh "$HOST" "mkdir -p ${SITE}/private/amihan && tar xzf - -C ${SITE}/private/amihan"
 
-echo "4/4  Migrating and caching on the server"
-ssh "$HOST" "cd ${REMOTE} && ${PHP} artisan migrate --force && ${PHP} artisan storage:link 2>/dev/null; ${PHP} artisan optimize && chmod -R ug+rwX storage bootstrap/cache"
-
-# Restore dev dependencies locally.
-composer install --no-interaction --quiet
+echo "3/3  Installing, migrating and publishing on the server"
+ssh "$HOST" "set -e
+cd ~/${SITE}/private/amihan
+composer install --no-dev --optimize-autoloader --no-interaction --quiet
+php artisan migrate --force
+chmod -R ug+rwX storage bootstrap/cache
+cd ~/${SITE}
+cp -a private/amihan/public/. public_html/
+printf '%s\n' '<?php' '// The Laravel app lives outside the web root, in ../private/amihan.' \"require __DIR__.'/../private/amihan/public/index.php';\" > public_html/index.php
+ln -sfn ../private/amihan/storage/app/public public_html/storage
+cd private/amihan && php artisan optimize >/dev/null"
 
 echo "Done: https://${DOMAIN}"

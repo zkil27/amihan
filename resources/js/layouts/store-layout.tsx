@@ -2,6 +2,7 @@ import { ToastHost } from '@/components/feedback/toasts';
 import { AltitudeRail } from '@/components/store/altitude-rail';
 import { CartDrawerProvider } from '@/components/store/cart-drawer';
 import { StoreFooter } from '@/components/store/footer';
+import { LuxuryCursor } from '@/components/store/luxury-cursor';
 import { MobileBar, StoreHeader } from '@/components/store/header';
 import { MistPass } from '@/motion/mist-pass';
 import { SmoothScroll } from '@/motion/smooth-scroll';
@@ -31,6 +32,7 @@ export default function StoreLayout({ children }: { children: ReactNode }) {
                         <StoreFooter />
                         <MobileBar />
                         <MistPass />
+                        <LuxuryCursor />
                     </HeaderToneContext.Provider>
                 </CartDrawerProvider>
             </ToastHost>

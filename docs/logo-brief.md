@@ -15,7 +15,7 @@
 3. Trace the chosen symbol to SVG, using Inkscape (Path → Trace Bitmap) or vectorizer.ai.
 4. Replace the paths in `resources/js/components/brand/logo.tsx` (`RidgeMark`) and in `public/favicon.svg`.
 
-The site already uses an interim **Ridge Wind** mark drawn in code: three contour lines forming a peak, with the top line curling into a gust.
+**Done (2026-11-25).** The chosen variation (top right of `general assets/Gemini_Generated_Image_zdrda9zdrda9zdrd.jpg`) was redrawn by hand as clean vector paths instead of auto-traced, so the stroke stays even at every size. It is live in `logo.tsx` and `public/favicon.svg`, and the master file is `general assets/amihan-mark.svg`.
 
 ## Palette
 
