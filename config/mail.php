@@ -46,6 +46,8 @@ return [
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
+            // 0.0.0.0 forces IPv4. Foursys resolves smtp.gmail.com to IPv6 but has no IPv6 route.
+            'source_ip' => env('MAIL_SOURCE_IP'),
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 

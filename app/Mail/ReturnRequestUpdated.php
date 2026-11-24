@@ -31,7 +31,7 @@ class ReturnRequestUpdated extends Mailable
 
     public function content(): Content
     {
-        return new Content(markdown: 'mail.return-update', with: [
+        return new Content(view: 'mail.return-update', text: 'mail.text.return-update', with: [
             'url' => route('account.orders.show', $this->request->order),
         ]);
     }

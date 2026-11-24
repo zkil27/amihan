@@ -34,7 +34,7 @@ class OrderStatusChanged extends Mailable
     {
         [$title, $body] = self::COPY[$this->order->status] ?? ['Order update', 'Your order status changed.'];
 
-        return new Content(markdown: 'mail.order-status', with: [
+        return new Content(view: 'mail.order-status', text: 'mail.text.order-status', with: [
             'title' => $title,
             'body' => $body,
             'url' => route('account.orders.show', $this->order),

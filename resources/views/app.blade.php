@@ -8,7 +8,7 @@
 
         <title inertia>{{ config('app.name', 'AMIHAN') }}</title>
 
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml">
         <link rel="preload" href="/fonts/zodiak-300-normal.woff2" as="font" type="font/woff2" crossorigin>
         <link rel="preload" href="/fonts/hanken-grotesk-var.woff2" as="font" type="font/woff2" crossorigin>
 

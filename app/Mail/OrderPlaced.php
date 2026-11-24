@@ -23,6 +23,6 @@ class OrderPlaced extends Mailable
 
     public function content(): Content
     {
-        return new Content(markdown: 'mail.order-placed', with: ['url' => route('account.orders.show', $this->order)]);
+        return new Content(view: 'mail.order-placed', text: 'mail.text.order-placed', with: ['url' => route('account.orders.show', $this->order)]);
     }
 }

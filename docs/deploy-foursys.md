@@ -44,6 +44,10 @@ It needs one repository secret, `FOURSYS_SSH_KEY`. That's a private key the serv
 
 Only files committed to git get deployed. Anything that was uploaded by hand stays on the server, because nothing is deleted there.
 
+### Cloudflare caching
+
+The site sits behind Cloudflare, and every static file is sent with a 10-year `Cache-Control`. Files in `build/` are safe because Vite puts a hash in each name. A file with a fixed name (`favicon.svg`, `/images/...`, `/fonts/...`) stays cached at Cloudflare after you replace it on the server. To serve the new file, add a version to its link (for example `/favicon.svg?v=2`) or purge the Cloudflare cache.
+
 ## Useful commands
 
 ```
@@ -56,16 +60,23 @@ nano .env && php artisan optimize          # change settings, then refresh the c
 
 ## Email
 
-Gmail SMTP (ports 587 and 465) is reachable from the server. In `.env` on the server, set:
+Order, status and return emails are sent through Gmail SMTP from `amihan.highlandpantry@gmail.com`, using an app password. In `.env` on the server:
 
 ```
 MAIL_MAILER=smtp
-MAIL_USERNAME=you@gmail.com
-MAIL_PASSWORD="<16-char app password>"
-MAIL_FROM_ADDRESS=you@gmail.com
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_ENCRYPTION=tls
+MAIL_USERNAME=amihan.highlandpantry@gmail.com
+MAIL_PASSWORD=<16-char app password, no spaces>
+MAIL_FROM_ADDRESS="amihan.highlandpantry@gmail.com"
+MAIL_FROM_NAME="AMIHAN Highland Pantry"
+MAIL_SOURCE_IP=0.0.0.0
 ```
 
-Then run `php artisan optimize`.
+Keep `MAIL_SOURCE_IP=0.0.0.0`. The server resolves `smtp.gmail.com` to an IPv6 address but has no IPv6 route, so without this setting every send times out. The setting forces IPv4.
+
+After changing `.env`, run `php artisan optimize`. To roll back to logging emails instead of sending them, set `MAIL_MAILER=log`.
 
 ## Backups
 
