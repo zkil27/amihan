@@ -28,6 +28,15 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
         gsap.ticker.lagSmoothing(0);
 
         const off = router.on('navigate', () => {
+            // Inertia has just reset (or, on back/forward, restored) the window
+            // scroll natively. If Lenis is still gliding from a recent wheel
+            // flick, it ignores that native scroll and its next frame drags the
+            // new page back to the old offset, which on a shorter page means the
+            // bottom. Drop the glide and adopt the position Inertia set.
+            if (Math.abs(instance.actualScroll - instance.animatedScroll) > 2) {
+                instance.dimensions.resize();
+                instance.scrollTo(instance.actualScroll, { immediate: true, force: true });
+            }
             instance.resize();
             requestAnimationFrame(() => ScrollTrigger.refresh());
         });

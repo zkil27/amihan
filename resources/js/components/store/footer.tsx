@@ -13,6 +13,12 @@ export function StoreFooter() {
                         by the Cafe-Isla Group.
                     </p>
                     <p className="text-mist/60 mt-4 text-[0.9375rem]">From coast to crest.</p>
+                    <p className="text-mist/55 mt-10 text-[0.8125rem] leading-relaxed">
+                        Founded by John Ezekiel <span className="font-display italic">Escueta</span>
+                        <span aria-hidden="true"> · </span>
+                        <span className="sr-only"> and </span>
+                        Elijah Job <span className="font-display italic">Tamayo</span>
+                    </p>
                 </div>
                 <nav className="grid grid-cols-2 gap-8 text-[0.9375rem] md:col-span-5 md:col-start-8" aria-label="Footer">
                     <ul className="grid gap-3">

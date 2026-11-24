@@ -31,6 +31,11 @@ const PILLARS = [
     },
 ];
 
+const FOUNDERS = [
+    { n: '01', given: 'John Ezekiel', family: 'Escueta' },
+    { n: '02', given: 'Elijah Job', family: 'Tamayo' },
+];
+
 export default function Story({ media }: { media: Record<string, string> }) {
     const root = useRef<HTMLDivElement>(null);
     useReveal(root);
@@ -74,6 +79,34 @@ export default function Story({ media }: { media: Record<string, string> }) {
                     </div>
                 </section>
             ))}
+
+            <section className="section hair" aria-labelledby="founders">
+                <div className="wrap grid gap-10 md:grid-cols-12">
+                    <p className="t-label md:col-span-2" data-reveal="fade">
+                        The founders
+                    </p>
+                    <div className="md:col-span-9">
+                        <h2 id="founders" className="t-display t-h2 max-w-[16ch]" data-reveal="lines">
+                            Two founders, one unhurried cup.
+                        </h2>
+                        <p className="t-lede mt-8" data-reveal="fade">
+                            AMIHAN began with a simple wish: to carry the calm of the coast up to where the coffee grows, and let the altitude speak for itself.
+                        </p>
+                        <ul className="mt-16 grid gap-12 md:mt-24 md:grid-cols-2 md:gap-8">
+                            {FOUNDERS.map((f) => (
+                                <li key={f.n} className="hair pt-8" data-reveal="fade">
+                                    <p className="t-num text-ink-soft">
+                                        {f.n} · Co-founder
+                                    </p>
+                                    <p className="t-display t-h3 mt-6">
+                                        {f.given} <span className="italic">{f.family}</span>
+                                    </p>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            </section>
 
             <section className="bg-pine text-mist section">
                 <div className="wrap flex flex-col items-start gap-10 md:flex-row md:items-end md:justify-between">
