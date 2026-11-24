@@ -47,17 +47,17 @@
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px;font-size:14px;line-height:1.5;color:#55635A;">
         <tr>
             <td style="padding:5px 0;">Subtotal</td>
-            <td align="right" style="padding:5px 0;font-family:{{ $mono }};font-weight:300;font-size:13px;">{{ $peso($order->subtotal) }}</td>
+            <td align="right" style="padding:5px 0;font-family:{{ $mono }};font-weight:300;font-size:14px;">{{ $peso($order->subtotal) }}</td>
         </tr>
         @if ($order->discount > 0)
             <tr>
                 <td style="padding:5px 0;">Discount</td>
-                <td align="right" style="padding:5px 0;font-family:{{ $mono }};font-weight:300;font-size:13px;">&minus;{{ $peso($order->discount) }}</td>
+                <td align="right" style="padding:5px 0;font-family:{{ $mono }};font-weight:300;font-size:14px;">&minus;{{ $peso($order->discount) }}</td>
             </tr>
         @endif
         <tr>
             <td style="padding:5px 0;">Delivery</td>
-            <td align="right" style="padding:5px 0;font-family:{{ $mono }};font-weight:300;font-size:13px;">{{ $order->delivery_fee > 0 ? $peso($order->delivery_fee) : 'Free' }}</td>
+            <td align="right" style="padding:5px 0;font-family:{{ $mono }};font-weight:300;font-size:14px;">{{ $order->delivery_fee > 0 ? $peso($order->delivery_fee) : 'Free' }}</td>
         </tr>
         <tr>
             <td style="padding:18px 0 0;"><div style="border-top:1px solid #B08D57;width:100%;font-size:0;line-height:0;">&nbsp;</div></td>
@@ -72,7 +72,7 @@
     {{-- Where and how. --}}
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:56px;">
         <tr>
-            <td class="stack" valign="top" width="55%" style="padding-right:24px;">
+            <td class="stack" valign="top" width="60%" style="padding-right:24px;">
                 <div style="{{ $label }}">Delivering to</div>
                 <div style="margin-top:10px;font-size:15px;line-height:1.6;color:#1E2D24;">
                     {{ $order->shipping_recipient }}<br>
@@ -83,7 +83,7 @@
                     <div style="margin-top:8px;font-size:13px;line-height:1.5;color:#55635A;">{{ $order->delivery_window }} window</div>
                 @endif
             </td>
-            <td class="stack stack-gap" valign="top" width="45%">
+            <td class="stack stack-gap" valign="top" width="40%">
                 <div style="{{ $label }}">Payment</div>
                 <div style="margin-top:10px;font-size:15px;line-height:1.6;color:#1E2D24;">
                     {{ $method }}@if ($order->payment?->card_last4) ending {{ $order->payment->card_last4 }}@endif

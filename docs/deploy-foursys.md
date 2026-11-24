@@ -29,6 +29,8 @@ From the project root in Git Bash:
 bash scripts/deploy.sh
 ```
 
+From PowerShell, call Git Bash by its full path: `& "C:\Program Files\Git\bin\bash.exe" scripts/deploy.sh`. A plain `bash` in PowerShell starts WSL, which can't see the `amihan-prod` alias in the Windows SSH config, so the upload fails with "Could not resolve hostname".
+
 The script:
 1. Builds the front-end assets.
 2. Uploads the code. It never sends `.env`, uploaded images or logs.
@@ -60,23 +62,38 @@ nano .env && php artisan optimize          # change settings, then refresh the c
 
 ## Email
 
-Order, status and return emails are sent through Gmail SMTP from `amihan.highlandpantry@gmail.com`, using an app password. In `.env` on the server:
+Order, status and return emails are sent through [Resend](https://resend.com) from the `amihan.shop` domain. Laravel's built-in `resend` mailer uses the `resend/resend-php` package and sends over HTTPS, so no SMTP ports are involved. Customer replies go to the AMIHAN Gmail inbox, because `amihan.shop` has no mailbox of its own.
+
+**One-time setup**
+
+1. In Resend, go to **Domains → amihan.shop** and copy each DNS record into Spaceship (**Advanced DNS → Custom records → Add record**). Enter only the subdomain part as the host, because Spaceship appends `.amihan.shop` itself. Use Resend's copy buttons, since the values on screen are truncated.
+   - DKIM: `TXT`, host `resend._domainkey`.
+   - SPF: `CNAME`, host `rsend`, and `CNAME`, host `send`.
+   - DMARC (optional): `TXT`, host `_dmarc`, value `v=DMARC1; p=none;`.
+
+   Leave the Email Forwarding records on `@` as they are. Resend's records sit on subdomains, so they don't conflict.
+2. Click **Verify DNS Records** and wait until the domain shows **Verified**. This can take from a few minutes up to a few hours.
+3. In Resend, go to **API keys** and create a key with **Sending access**, restricted to `amihan.shop`.
+
+**Server `.env`**
 
 ```
-MAIL_MAILER=smtp
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_ENCRYPTION=tls
-MAIL_USERNAME=amihan.highlandpantry@gmail.com
-MAIL_PASSWORD=<16-char app password, no spaces>
-MAIL_FROM_ADDRESS="amihan.highlandpantry@gmail.com"
+MAIL_MAILER=resend
+RESEND_KEY=re_xxxxxxxxxxxxxxxx
+MAIL_FROM_ADDRESS="orders@amihan.shop"
 MAIL_FROM_NAME="AMIHAN Highland Pantry"
-MAIL_SOURCE_IP=0.0.0.0
+MAIL_REPLY_TO_ADDRESS="amihan.highlandpantry@gmail.com"
 ```
 
-Keep `MAIL_SOURCE_IP=0.0.0.0`. The server resolves `smtp.gmail.com` to an IPv6 address but has no IPv6 route, so without this setting every send times out. The setting forces IPv4.
+Remove the old `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_ENCRYPTION` and `MAIL_SOURCE_IP` lines; the Resend mailer doesn't use them. `MAIL_FROM_ADDRESS` must be on the verified domain, or Resend rejects the send with a 403.
 
-After changing `.env`, run `php artisan optimize`. To roll back to logging emails instead of sending them, set `MAIL_MAILER=log`.
+After changing `.env`, run `php artisan optimize`. To check that sending works:
+
+```bash
+php artisan tinker --execute="Mail::raw('Resend test', fn (\$m) => \$m->to('amihan.highlandpantry@gmail.com')->subject('AMIHAN test'));"
+```
+
+The send then appears under **Logs** in the Resend dashboard. To roll back to logging emails instead of sending them, set `MAIL_MAILER=log`.
 
 ## Backups
 

@@ -84,7 +84,7 @@
                 <span style="color:#4E5B52;">&nbsp;&nbsp;/&nbsp;&nbsp;</span>
                 <a href="{{ route('account.index') }}" style="color:#EAE7E1;text-decoration:none;border-bottom:1px solid #4E5B52;">Your orders</a>
                 <span style="color:#4E5B52;">&nbsp;&nbsp;/&nbsp;&nbsp;</span>
-                <a href="mailto:{{ config('mail.from.address') }}" style="color:#EAE7E1;text-decoration:none;border-bottom:1px solid #4E5B52;">Write to us</a>
+                <a href="mailto:{{ config('mail.reply_to.address') ?: config('mail.from.address') }}" style="color:#EAE7E1;text-decoration:none;border-bottom:1px solid #4E5B52;">Write to us</a>
             </div>
             <div style="margin-top:24px;font-family:{{ $sans }};font-size:12px;line-height:1.6;color:#A1A49D;">
                 @yield('footnote', 'You are receiving this because you placed an order with AMIHAN Highland Pantry. Reply to this email and a person will answer.')

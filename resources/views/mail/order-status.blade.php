@@ -10,6 +10,10 @@
     $flow = \App\Models\Order::FLOW;
     $reached = array_search($order->status, $flow, true);
     $cancelled = $order->status === 'cancelled';
+
+    // System notes like "On the way. Tracking X" or "Delivered" repeat what the email already shows.
+    $tracking = $order->shipment?->tracking_no;
+    $showNote = $note && ! ($tracking && str_contains($note, $tracking)) && strcasecmp(trim($note, '. '), $order->status) !== 0;
 @endphp
 
 @section('title', $title)
@@ -72,7 +76,7 @@
         @endif
     </table>
 
-    @if ($note)
+    @if ($showNote)
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:32px;">
             <tr>
                 <td style="padding:0 0 0 20px;border-left:1px solid {{ $cancelled ? '#9B4A37' : '#A9ABA4' }};font-family:{{ $serif }};font-style:italic;font-weight:300;font-size:18px;line-height:1.45;color:#1E2D24;">{{ $note }}</td>
